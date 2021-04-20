@@ -2327,7 +2327,7 @@ class TestFX(JitTestCase):
         def f_dict_add(x):
             return x['a'] + sum(x['z'])
 
-        class Foo(object):
+        class Foo(object):  # noqa: B209
             def __init__(self, a, b):
                 self.a = a
                 self.b = b
