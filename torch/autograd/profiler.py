@@ -462,6 +462,8 @@ class profile(object):
         if self.entered:
             raise RuntimeError("profiler context manager is not reentrant")
         self.entered = True
+        if torch.cuda.is_available():
+            torch.cuda.synchronize()
         if self.kineto_activities:
             torch.autograd._prepare_profiler(self.config(), self.kineto_activities)
             torch.autograd._enable_profiler(self.config(), self.kineto_activities)
@@ -481,6 +483,8 @@ class profile(object):
     def __exit__(self, exc_type, exc_val, exc_tb):
         if not self.enabled:
             return
+        if torch.cuda.is_available():
+            torch.cuda.synchronize()
         if self.kineto_activities:
             self.kineto_results = torch.autograd._disable_profiler()
             parsed_results = parse_kineto_results(self.kineto_results)
