@@ -217,6 +217,35 @@ class TestMisc(PackageTestCase):
         self.assertTrue(imported_mod.is_from_package())
         self.assertFalse(mod.is_from_package())
 
+    def test_broken_modules(self):
+        """
+        When created with raise_packaging_errors=True, PackageExporter
+        should not raise an Exception when a module cannot be packaged and
+        should instead keep a list of all such modules.
+        """
+        buffer = BytesIO()
+
+        with PackageExporter(buffer, verbose=False, raise_packaging_errors=False) as pe:
+            pe.save_source_string(
+                "test_module",
+                dedent(
+                    """\
+                    import os
+                    import sentencepiece
+
+                    def fn():
+                        pass
+                    """
+                ),
+            )
+
+        broken_modules = [module.name for module in pe.broken_modules]
+        self.assertEqual(len(broken_modules), 3)
+        self.assertIn("_sentencepiece", broken_modules)
+
+        for module in pe.broken_modules:
+            self.assertRegex(module.reason, r"could not be found")
+
 
 if __name__ == "__main__":
     run_tests()
